@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+  <PackageId>TurboLimit.AspNetCore</PackageId>
+  <IsPackable>true</IsPackable>
+  <Version>1.0.0</Version>
+  <Authors>felaback</Authors>
+  <PackageReadmeFile>README.md</PackageReadmeFile>
+  <Description>A high-performance, Redis-backed Token Bucket rate limiter for ASP.NET Core.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" Version="2.12.4" />
+    <None Include="./README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>
+
+<!---->
