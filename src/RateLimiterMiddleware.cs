@@ -11,12 +11,20 @@ public class RateLimiterMiddleware
     }
     public async Task InvokeAsync(HttpContext httpContext)
     {
+        var endpoint = httpContext.GetEndpoint();
+        if (endpoint?.Metadata.GetMetadata<RequireRateLimiterMetadata>() is null)
+        {
+            await _next(httpContext);
+            return;
+        }
+
         var userIP = httpContext.Connection.RemoteIpAddress;
         if (userIP is null)
         {
             throw new NotFoundException("User is null");
         }
-        RateLimitResult result = await _store.CheckRateLimitAsync(userIP.ToString());
+        string rateLimitKey = BuildRateLimitKey(httpContext, userIP.ToString());
+        RateLimitResult result = await _store.CheckRateLimitAsync(rateLimitKey);
         httpContext.Response.Headers.Append("X-RateLimit-Remaining", $"Request token remaining {result.remainingTokens}");
         if (result.isAllowed)
         {
@@ -25,6 +33,16 @@ public class RateLimiterMiddleware
         {
             httpContext.Response.StatusCode = 429;
         }
+    }
+
+    private static string BuildRateLimitKey(HttpContext httpContext, string userIp)
+    {
+        string method = httpContext.Request.Method;
+        string endpointPath = httpContext.GetEndpoint() is RouteEndpoint routeEndpoint
+            ? routeEndpoint.RoutePattern.RawText ?? httpContext.Request.Path.Value ?? "unknown"
+            : httpContext.Request.Path.Value ?? "unknown";
+
+        return $"{userIp}:{method}:{endpointPath}".ToLowerInvariant();
     }
 }
 

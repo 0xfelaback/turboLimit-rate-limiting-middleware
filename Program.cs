@@ -21,7 +21,7 @@ builder.Services.AddSingleton<IRateLimiterStore, RedisRateLimiterStore>();
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "Hello World!").RequireRateLimiter();
 app.UseRateLimiterMiddleware();
 
 app.Run();

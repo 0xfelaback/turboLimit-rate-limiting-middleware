@@ -55,6 +55,14 @@ These tests indicate the middleware gracefully limits traffic without crashing t
 
 ## Usage
 
+### Per-endpoint throttling behavior
+
+Rate limiting is now **endpoint-aware** and **opt-in**:
+
+- **Endpoint-aware key:** tokens are tracked by `IP + HTTP method + endpoint path` (for example: `192.168.1.10:get:/orders`).
+- **Opt-in marker:** only endpoints explicitly marked with `.RequireRateLimiter()` are throttled.
+- **Unmarked endpoints:** requests pass through without rate limiting.
+
 **1. Configuration (`appsettings.json`)**
 ```json
 {
@@ -70,6 +78,7 @@ These tests indicate the middleware gracefully limits traffic without crashing t
 **2. Setup in `Program.cs`**
 ```csharp
 using RateLimiterMiddleware.src;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +93,9 @@ builder.Services.Configure<RateLimitOptions>(
 builder.Services.AddSingleton<IRateLimiterStore, RedisRateLimiterStore>();
 
 var app = builder.Build();
+
+app.MapGet("/public", () => "No throttling on this endpoint");
+app.MapPost("/login", () => "Rate limited").RequireRateLimiter();
 
 app.UseRateLimiterMiddleware();
 
